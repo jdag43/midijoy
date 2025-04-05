@@ -1,8 +1,9 @@
 import evdev
 import mido
+       
 
 def find_joycon():
-    """Find and return Joy-Con devices"""
+    """Find and return Joy-Con devices with haptic feedback"""
     print("\nSearching for Joy-Con devices...")
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
     
@@ -28,6 +29,7 @@ def find_joycon():
         print("\nJoy-Con devices successfully detected!")
 
     return joycon_main, joycon_imu
+
 
 def select_midi_output():
     """Let user select MIDI output from available devices"""

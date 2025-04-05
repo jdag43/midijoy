@@ -1,21 +1,28 @@
-import evdev
 import time
 import sys
 import argparse
-from config import *
-from devices import find_joycon, select_midi_output, ButtonState, process_gyro_event, process_joystick_event, process_button_event
-from midi import scale_gyro_to_midi, scale_joystick_to_midi, send_midi_messages, midi_learn_loop
+import evdev
+from config.config_loader import ConfigLoader
+from devices.detector import find_joycon, select_midi_output
+from devices.handler import ButtonState, process_gyro_event, process_joystick_event, process_button_event
+from midi.mapper import scale_gyro_to_midi, scale_joystick_to_midi
+from midi.sender import send_midi_messages
+from midi.learner import midi_learn_loop
 
-
+# Initialize configuration
+config = ConfigLoader()
 def print_values(gyro_values, joycon_values, gyro_enabled, joystick_enabled, button_state):
     gyro_status = "ON " if gyro_enabled else "OFF"
     joystick_status = "ON " if joystick_enabled else "OFF"
 
     active_buttons = []
-    for code in BUTTON_MAPPINGS.keys():
+    toggle_on = config.config['midi'].get('toggle', {}).get('on', 127)  # Get toggle ON value
+    toggle_off = config.config['midi'].get('toggle', {}).get('off', 0)  # Get toggle OFF value
+    
+    for code in config.button_mappings.keys():
         if button_state.states.get(code, False):
-            state = "ON" if button_state.cc_values[code] == CC_TOGGLE_ON else "OFF"
-            active_buttons.append(f"{BUTTON_NAMES.get(code, '?')}({state})")
+            state = "ON" if button_state.cc_values[code] == toggle_on else "OFF"
+            active_buttons.append(f"{config.button_names.get(code, '?')}({state})")
 
     output = (
         f"\rGyro: X:{gyro_values['x']:6d} | Y:{gyro_values['y']:6d} | Z:{gyro_values['z']:6d} "
@@ -31,24 +38,24 @@ def print_configuration(midi_out, gyro_enabled, joystick_enabled):
         print("\nRunning in preview mode (no MIDI output)")
     else:
         print("\nActive MIDI Configuration:")
-        print(f"MIDI Channel: {MIDI_CHANNEL}")
+        print(f"MIDI Channel: {config.config['midi']['channel']}")
         print(f"Gyro Output: {'Enabled' if gyro_enabled else 'Disabled'}")
         print(f"Joystick Output: {'Enabled' if joystick_enabled else 'Disabled'}")
         
         print("\nControl Assignments:")
         if gyro_enabled:
             print("Gyro:")
-            for axis, cc in GYRO_CC_MAP.items():
+            for axis, cc in config.gyro_cc_map.items():
                 print(f"  {axis.upper()}-axis → CC{cc}")
         
         if joystick_enabled:
             print("\nJoystick:")
-            for axis, cc in JOYSTICK_CC_MAP.items():
+            for axis, cc in config.joystick_cc_map.items():
                 print(f"  {axis.upper()}-axis → CC{cc}")
         
         print("\nButtons:")
-        for code, cc in BUTTON_MAPPINGS.items():
-            print(f"  {BUTTON_NAMES.get(code, 'Unknown')} → CC{cc} (Toggle ON/OFF)")
+        for code, cc in config.button_mappings.items():
+            print(f"  {config.button_names.get(code, 'Unknown')} → CC{cc} (Toggle ON/OFF)")
 
 def main_loop(joycon_main, joycon_imu, midi_out, gyro_enabled, joystick_enabled):
     gyro_values = {'x': 0, 'y': 0, 'z': 0}
@@ -83,7 +90,7 @@ def main_loop(joycon_main, joycon_imu, midi_out, gyro_enabled, joystick_enabled)
             if new_data and midi_out:
                 send_midi_messages(midi_out, gyro_values, joycon_values, button_state, gyro_enabled, joystick_enabled)
 
-            if current_time - last_print >= PRINT_INTERVAL:
+            if current_time - last_print >= config.config.get('print_interval', 0.1):
                 print_values(gyro_values, joycon_values, gyro_enabled, joystick_enabled, button_state)
                 last_print = current_time
 

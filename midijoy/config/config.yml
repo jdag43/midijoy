@@ -1,0 +1,60 @@
+# Joy-Con Input Ranges
+input:
+  gyro:
+    min: -4100
+    max: 4100
+  joystick:
+    min: -32767
+    max: 32767
+
+# MIDI Settings
+midi:
+  channel: 0
+  toggle:
+    on: 127
+    off: 0
+
+# Button Display Names
+button_names:
+  309: "A"
+  310: "L"
+  311: "R"
+  312: "ZL"
+  313: "ZR"
+  314: "-"
+  317: "THUMB"
+  544: "↑"
+  545: "↓"
+  546: "←"
+  547: "→"
+
+# Control Mappings
+mappings:
+  gyro:
+    x: 20
+    y: 21
+    z: 22
+  joystick:
+    x: 23
+    y: 24
+  buttons:
+    309: 60
+    310: 61
+    311: 62
+    312: 63
+    313: 64
+    314: 65
+    317: 66
+    544: 67
+    545: 68
+    546: 69
+    547: 70
+
+# MIDI-Learn Options
+midi_learn:
+  1: [gyro_x, "Gyro X-axis"]
+  2: [gyro_y, "Gyro Y-axis"]
+  3: [gyro_z, "Gyro Z-axis"]
+  4: [joystick_x, "Joystick X-axis"]
+  5: [joystick_y, "Joystick Y-axis"]
+  6: [buttons, "Buttons (all)"]

@@ -1,9 +1,11 @@
 import sys
 import select
 import time
-from config import MIDILEARN_OPTIONS, BUTTON_NAMES, BUTTON_MAPPINGS, CC_TOGGLE_ON, CC_TOGGLE_OFF
+from config.config_loader import ConfigLoader
 from devices.handler import ButtonState, process_devices
 from .sender import send_midi_for_learn
+
+config = ConfigLoader()
 
 class MidiLearnState:
     def __init__(self):
@@ -19,7 +21,7 @@ class MidiLearnState:
 
 def print_midilearn_menu():
     print("\nMIDI Learn Menu:")
-    for num, (_, name) in MIDILEARN_OPTIONS.items():
+    for num, (_, name) in config.midi_learn_options.items():
         print(f"{num}: {name}")
     print("q: Finish MIDI Learn and start normal operation")
     print("\nSelect a control to learn (1-6) or 'q' to finish:")
@@ -64,8 +66,8 @@ def midi_learn_loop(joycon_main, joycon_imu, midi_out):
             
         try:
             selection = int(selection)
-            if selection in MIDILEARN_OPTIONS:
-                control, name = MIDILEARN_OPTIONS[selection]
+            if selection in config.midi_learn_options:
+                control, name = config.midi_learn_options[selection]
                 learn_state.current_selection = control
                 print(f"\nLearning {name}... Move the control or press buttons, then press any key to stop")
                 
