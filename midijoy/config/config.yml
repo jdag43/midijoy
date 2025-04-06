@@ -16,17 +16,28 @@ midi:
 
 # Button Display Names
 button_names:
-  309: "A"
-  310: "L"
-  311: "R"
-  312: "ZL"
-  313: "ZR"
-  314: "-"
-  317: "THUMB"
-  544: "↑"
-  545: "↓"
-  546: "←"
-  547: "→"
+  # Left Joy-Con buttons
+  309: "Z (L)"
+  310: "TL (L)"
+  314: "- (L)"
+  317: "THUMB (L)"
+  544: "↑ (L)"
+  545: "↓ (L)"
+  546: "← (L)"
+  547: "→ (L)"
+  # Right Joy-Con buttons
+  304: "B (R)"
+  305: "A (R)"
+  307: "X (R)"
+  308: "Y (R)"
+  310: "R (R)"
+  315: "+ (R)"
+  316: "MODE (R)"
+  318: "THUMB (R)"
+  # Common Joy-Con buttons
+  311: "TR"
+  312: "TL2"
+  313: "TR2"
 
 # Control Mappings
 mappings:
@@ -34,9 +45,12 @@ mappings:
     x: 20
     y: 21
     z: 22
-  joystick:
-    x: 23
-    y: 24
+  joystick_left:
+    x: 23  # Left Joy-Con X-axis
+    y: 24  # Left Joy-Con Y-axis
+  joystick_right:
+    x: 25  # Right Joy-Con RX-axis
+    y: 26  # Right Joy-Con RY-axis
   buttons:
     309: 60
     310: 61
@@ -44,17 +58,22 @@ mappings:
     312: 63
     313: 64
     314: 65
-    317: 66
-    544: 67
-    545: 68
-    546: 69
-    547: 70
+    315: 66
+    316: 67
+    317: 68
+    318: 69
+    544: 70
+    545: 71
+    546: 72
+    547: 73
 
 # MIDI-Learn Options
 midi_learn:
-  1: [gyro_x, "Gyro X-axis"]
-  2: [gyro_y, "Gyro Y-axis"]
-  3: [gyro_z, "Gyro Z-axis"]
-  4: [joystick_x, "Joystick X-axis"]
-  5: [joystick_y, "Joystick Y-axis"]
-  6: [buttons, "Buttons (all)"]
+  0: [gyro_x, "Gyro X-axis", "both"]
+  1: [gyro_y, "Gyro Y-axis", "both"]
+  2: [gyro_z, "Gyro Z-axis", "both"]
+  3: [joystick_x, "Left Joystick X-axis", "left"]
+  4: [joystick_y, "Left Joystick Y-axis", "left"]
+  5: [joystick_rx, "Right Joystick X-axis", "right"]
+  6: [joystick_ry, "Right Joystick Y-axis", "right"]
+  7: [buttons, "Buttons (all)", "both"]

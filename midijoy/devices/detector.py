@@ -1,22 +1,44 @@
 import evdev
 import mido
-       
+from enum import Enum
 
+class JoyConType(Enum):
+    LEFT = "Left"
+    RIGHT = "Right"
+
+# Find and return Joy-Con devices with their type
+# tuple: (main_device, imu_device, joycon_type)
+# Returns (None, None, None) if devices not found
 def find_joycon():
-    """Find and return Joy-Con devices with haptic feedback"""
     print("\nSearching for Joy-Con devices...")
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
     
-    joycon_main = joycon_imu = None
+    joycon_main = None
+    joycon_imu  = None
+    joycon_type = None
+    
+    # Search for both Left and Right Joy-Con variants
     for device in devices:
-        if "Joy-Con (L) (IMU)" in device.name:
-            joycon_imu = device
-            print(f"Found IMU device: {device.name} at {device.path}")
-        elif "Joy-Con (L)" in device.name and "(IMU)" not in device.name:
-            joycon_main = device
-            print(f"Found main device: {device.name} at {device.path}")
+        name = device.name
+        if "Joy-Con (L)" in name:
+            if "(IMU)" in name:
+                joycon_imu = device
+                print(f"Found Left Joy-Con IMU: {name} at {device.path}")
+            else:
+                joycon_main = device
+                joycon_type = JoyConType.LEFT
+                print(f"Found Left Joy-Con Main: {name} at {device.path}")
+        elif "Joy-Con (R)" in name:
+            if "(IMU)" in name:
+                joycon_imu = device
+                print(f"Found Right Joy-Con IMU: {name} at {device.path}")
+            else:
+                joycon_main = device
+                joycon_type = JoyConType.RIGHT
+                print(f"Found Right Joy-Con Main: {name} at {device.path}")
 
-    if not joycon_main or not joycon_imu:
+    # Verify we found both required devices
+    if not joycon_main or not joycon_imu or not joycon_type:
         print("\nError: Could not find required Joy-Con devices!")
         if not joycon_main:
             print("- Main Joy-Con device missing")
@@ -25,14 +47,14 @@ def find_joycon():
         print("Available devices:")
         for i, device in enumerate(devices):
             print(f"  {i}: {device.path} - {device.name}")
-    else:
-        print("\nJoy-Con devices successfully detected!")
+        return None, None, None
+    
+    print(f"\n{joycon_type.value} Joy-Con successfully detected!")
+    return joycon_main, joycon_imu, joycon_type
 
-    return joycon_main, joycon_imu
 
-
+# Let user select MIDI output from available devices"""
 def select_midi_output():
-    """Let user select MIDI output from available devices"""
     outputs = mido.get_output_names()
     if not outputs:
         print("No MIDI output devices found!")

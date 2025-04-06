@@ -1,98 +1,67 @@
 import mido
 from config.config_loader import ConfigLoader
 from midi.mapper import scale_gyro_to_midi, scale_joystick_to_midi
+from devices.detector import JoyConType
 
 config = ConfigLoader()
 
-def send_midi_messages(midi_out, gyro_values, joycon_values, button_state, gyro_enabled, joystick_enabled):
-    """Send all MIDI messages for normal operation"""
-    if not midi_out:
-        return
+# Handles all midi output operations
+class MidiSender:
+    def __init__(self, midi_out):
+        self.midi_out = midi_out
+        self.channel = config.config['midi']['channel']
+    
+    def send_cc(self, control, value):
+        self.midi_out.send(mido.Message(
+            'control_change',
+            channel=self.channel,
+            control=control,
+            value=value
+        ))
+    
+    def send_gyro(self, axis, value):
+        """Send gyroscope data as MIDI CC"""
+        self.send_cc(config.gyro_cc_map[axis], scale_gyro_to_midi(value))
+    
+    def send_joystick(self, axis, value, joycon_type: JoyConType):
+        """Send joystick data using appropriate mapping"""
+        cc_map = (config.joystick_right_cc_map if joycon_type == JoyConType.RIGHT 
+                 else config.joystick_left_cc_map)
+        self.send_cc(cc_map[axis], scale_joystick_to_midi(value))
+    
+    def send_button(self, cc, value):
+        """Send button state as MIDI CC"""
+        self.send_cc(cc, value)
 
-    midi_channel = config.config['midi']['channel']
-
+# Send all MIDI messages for normal operation
+def send_midi_messages(midi_sender: MidiSender, gyro_values, joycon_values, button_state, gyro_enabled, joystick_enabled, joycon_type: JoyConType):
     # Send gyro data if enabled
     if gyro_enabled:
-        for axis, cc in config.gyro_cc_map.items():
-            midi_out.send(mido.Message(
-                'control_change',
-                channel=midi_channel,
-                control=cc,
-                value=scale_gyro_to_midi(gyro_values[axis])
-                )
-            )
-
+        for axis in ['x', 'y', 'z']:
+            midi_sender.send_gyro(axis, gyro_values[axis])
     # Send joystick data if enabled
     if joystick_enabled:
-        for axis, cc in config.joystick_cc_map.items():
-            midi_out.send(mido.Message(
-                'control_change',
-                channel=midi_channel,
-                control=cc,
-                value=scale_joystick_to_midi(joycon_values[axis])
-                )
-            )
-
+        for axis in ['x', 'y']:
+            midi_sender.send_joystick(axis, joycon_values[axis], joycon_type)
     # Send button data
-    for code, cc in config.button_mappings.items():
-        if button_state.states[code]:
-            midi_out.send(mido.Message(
-                'control_change',
-                channel=midi_channel,
-                control=cc,
-                value=button_state.cc_values[code]
-                )
-            )
+    for code, pressed in button_state.states.items():
+        if pressed:
+            midi_sender.send_button(config.button_mappings[code], button_state.cc_values[code])
 
-def send_midi_for_learn(learn_state, midi_out, gyro_values, joycon_values, button_state):
-    """Special MIDI sending for learn mode"""
-    if not midi_out:
-        return
-        
-    midi_channel = config.config['midi']['channel']
+# Special MIDI sending for learn mode
+def send_midi_for_learn(learn_state, midi_sender: MidiSender, gyro_values, joycon_values, button_state, joycon_type: JoyConType):
     control = learn_state.current_selection
-
     if control == 'gyro_x':
-        midi_out.send(mido.Message(
-            'control_change',
-            channel=midi_channel,
-            control=config.gyro_cc_map['x'],
-            value=scale_gyro_to_midi(gyro_values['x']))
-        )
+        midi_sender.send_gyro('x', gyro_values['x'])
     elif control == 'gyro_y':
-        midi_out.send(mido.Message(
-            'control_change',
-            channel=midi_channel,
-            control=config.gyro_cc_map['y'],
-            value=scale_gyro_to_midi(gyro_values['y']))
-        )
+        midi_sender.send_gyro('y', gyro_values['y'])
     elif control == 'gyro_z':
-        midi_out.send(mido.Message(
-            'control_change',
-            channel=midi_channel,
-            control=config.gyro_cc_map['z'],
-            value=scale_gyro_to_midi(gyro_values['z']))
-        )
-    elif control == 'joystick_x':
-        midi_out.send(mido.Message(
-            'control_change',
-            channel=midi_channel,
-            control=config.joystick_cc_map['x'],
-            value=scale_joystick_to_midi(joycon_values['x']))
-        )
-    elif control == 'joystick_y':
-        midi_out.send(mido.Message(
-            'control_change',
-            channel=midi_channel,
-            control=config.joystick_cc_map['y'],
-            value=scale_joystick_to_midi(joycon_values['y']))
-        )
+        midi_sender.send_gyro('z', gyro_values['z'])
+    elif control in ['joystick_x', 'joystick_rx']:
+        midi_sender.send_joystick('x', joycon_values['x'], joycon_type)
+    elif control in ['joystick_y', 'joystick_ry']:
+        midi_sender.send_joystick('y', joycon_values['y'], joycon_type)
     elif control == 'buttons':
         for code, pressed in button_state.states.items():
             if pressed:
-                midi_out.send(mido.Message(
-                    'control_change',
-                    channel=midi_channel,
-                    control=config.button_mappings[code],
-                    value=button_state.cc_values[code])
-                )
+                midi_sender.send_button(config.button_mappings[code], button_state.cc_values[code])

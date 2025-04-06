@@ -33,8 +33,12 @@ class ConfigLoader:
         return self.config['mappings']['gyro']
 
     @property
-    def joystick_cc_map(self) -> Dict[str, int]:
-        return self.config['mappings']['joystick']
+    def joystick_left_cc_map(self) -> Dict[str, int]:
+        return self.config['mappings']['joystick_left']
+
+    @property
+    def joystick_right_cc_map(self) -> Dict[str, int]:
+        return self.config['mappings']['joystick_right']
 
     @property
     def button_names(self) -> Dict[int, str]:
