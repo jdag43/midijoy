@@ -14,6 +14,49 @@ midi:
     on: 127
     off: 0
 
+# Control Mappings
+mappings:
+  gyro:
+    x: 20
+    y: 21
+    z: 22
+  joystick_left:
+    x: 23  # Left Joy-Con X-axis
+    y: 24  # Left Joy-Con Y-axis
+  joystick_right:
+    x: 25  # Right Joy-Con RX-axis
+    y: 26  # Right Joy-Con RY-axis
+  buttons:
+    304: 60 # B
+    305: 61 # A
+    307: 62 # X
+    308: 63 # Y
+    309: 64 # Z
+    310: 65 # L
+    311: 66 # R
+    312: 67 # ZL
+    313: 68 # ZL
+    314: 69 # -
+    315: 70 # +
+    316: 71 # Camera
+    317: 72 # Left Stick
+    318: 73 # Right Stick
+    544: 74 # ↑
+    545: 75 # ↓
+    546: 76 # ←
+    547: 77 # →
+
+# MIDI-Learn Options
+midi_learn:
+  0: [gyro_x, "Gyro X-axis", "both"]
+  1: [gyro_y, "Gyro Y-axis", "both"]
+  2: [gyro_z, "Gyro Z-axis", "both"]
+  3: [joystick_x, "Left Joystick X-axis", "left"]
+  4: [joystick_y, "Left Joystick Y-axis", "left"]
+  5: [joystick_rx, "Right Joystick X-axis", "right"]
+  6: [joystick_ry, "Right Joystick Y-axis", "right"]
+  7: [buttons, "Buttons (all)", "both"]
+
 # Button Display Names
 button_names:
   # Left Joy-Con buttons
@@ -38,42 +81,3 @@ button_names:
   311: "TR"
   312: "TL2"
   313: "TR2"
-
-# Control Mappings
-mappings:
-  gyro:
-    x: 20
-    y: 21
-    z: 22
-  joystick_left:
-    x: 23  # Left Joy-Con X-axis
-    y: 24  # Left Joy-Con Y-axis
-  joystick_right:
-    x: 25  # Right Joy-Con RX-axis
-    y: 26  # Right Joy-Con RY-axis
-  buttons:
-    309: 60
-    310: 61
-    311: 62
-    312: 63
-    313: 64
-    314: 65
-    315: 66
-    316: 67
-    317: 68
-    318: 69
-    544: 70
-    545: 71
-    546: 72
-    547: 73
-
-# MIDI-Learn Options
-midi_learn:
-  0: [gyro_x, "Gyro X-axis", "both"]
-  1: [gyro_y, "Gyro Y-axis", "both"]
-  2: [gyro_z, "Gyro Z-axis", "both"]
-  3: [joystick_x, "Left Joystick X-axis", "left"]
-  4: [joystick_y, "Left Joystick Y-axis", "left"]
-  5: [joystick_rx, "Right Joystick X-axis", "right"]
-  6: [joystick_ry, "Right Joystick Y-axis", "right"]
-  7: [buttons, "Buttons (all)", "both"]
