@@ -19,8 +19,30 @@ MiJoCo transforms your Nintendo Switch JoyCon into a versatile MIDI controller, 
 - Linux kernel >= 5.16 (for hid-nintendo driver)
 - `hid-nintendo` module loaded
 - Python 3.8+
+- User in `input` group (for HID event access):
+```bash
+sudo usermod -a -G input $USER
+```
+- Connect the JoyCon via Bluetooth.
+ 
+## Installation & Usage
 
-## Installation (Arch Linux)
+### Using the pre-built Binary (recommended)
+
+- Download the latest `mijoco` release: https://github.com/jdag43/mijoco/releases/download/0.2/mijoco
+- Create the `config.yml` file in the same folder (you can copy the default config from here: https://github.com/jdag43/mijoco/releases/download/0.2/config.yml)
+- Make `mijoco` executable 
+```bash 
+chmod +x mijoco
+```
+- Run:
+```bash
+./mijoco [--options]
+``` 
+
+### From Source
+
+Download the code and prepare the virtual environment:
 
 ```bash
 git clone https://github.com/jdag43/mijoco.git
@@ -30,22 +52,13 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Your user must be in the `input` usergroup (for HID events access)
-```bash
-sudo usermod -a -G input $USER
-```
-
-## Usage
-
-You first need to connect the JoyCon via Bluetooth.
-
-Then:
-
+Run: 
 ```bash
 python main.py [--option]
 ```
 
 ### Options
+
 | Key Combination | Action                                             |
 |-----------------|----------------------------------------------------|
 | no option       | Start with default settings (all controls enabled) |
@@ -56,16 +69,16 @@ python main.py [--option]
 ### Basic Commands
 ```bash
 # Start with default settings (all controls enabled)
-python main.py
+./mijoco
 
 # Start with gyroscope disabled
-python main.py --no-gyro
+./mijoco --no-gyro
 
 # Start with joystick disabled
-python main.py --no-joystick
+./mijoco --no-joystick
 
 # Enter MIDI Learn mode
-python main.py --midi-learn
+./mijoco --midi-learn
 ```
 
 ### MIDI Learn Mode Walkthrough
@@ -174,5 +187,5 @@ After modifying config.yml:
 2. Restart the program for changes to take effect
 3. (Optional) Use `--midi-learn` to test new mappings:
 ```bash
-python main.py --midi-learn
+./mijoco --midi-learn
 ```
