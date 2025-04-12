@@ -1,7 +1,7 @@
 import mido
-from config.config_loader import ConfigLoader
-from midi.mapper import scale_gyro_to_midi, scale_joystick_to_midi
-from devices.detector import JoyConType
+from mijoco.config.config_loader import ConfigLoader
+from mijoco.midi.mapper import scale_gyro_to_midi, scale_joystick_to_midi
+from mijoco.devices.detector import JoyConType
 
 config = ConfigLoader()
 

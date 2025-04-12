@@ -1,0 +1,47 @@
+# Joy-Con Input Ranges
+input:
+  gyro:
+    min: -4100
+    max: 4100
+  joystick:
+    min: -32767
+    max: 32767
+
+# MIDI Settings
+midi:
+  channel: 1
+  toggle:
+    on: 127
+    off: 0
+
+# Control Mappings
+mappings:
+  gyro:
+    x: 20
+    y: 21
+    z: 22
+  joystick_left:
+    x: 23  # Left Joy-Con X-axis
+    y: 24  # Left Joy-Con Y-axis
+  joystick_right:
+    x: 25  # Right Joy-Con RX-axis
+    y: 26  # Right Joy-Con RY-axis
+  buttons:
+    304: 60 # B
+    305: 61 # A
+    307: 62 # X
+    308: 63 # Y
+    309: 64 # Z
+    310: 65 # L
+    311: 66 # R
+    312: 67 # ZL
+    313: 68 # ZL
+    314: 69 # -
+    315: 70 # +
+    316: 71 # Camera
+    317: 72 # Left Stick
+    318: 73 # Right Stick
+    544: 74 # ↑
+    545: 75 # ↓
+    546: 76 # ←
+    547: 77 # →

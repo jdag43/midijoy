@@ -1,23 +1,15 @@
 import evdev
 import mido
-from enum import Enum
+from mijoco.config.config_loader import JoyConType  # Now using centralized enum
 
-class JoyConType(Enum):
-    LEFT = "Left"
-    RIGHT = "Right"
-
-# Find and return Joy-Con devices with their type
-# tuple: (main_device, imu_device, joycon_type)
-# Returns (None, None, None) if devices not found
 def find_joycon():
     print("\nSearching for Joy-Con devices...")
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
     
     joycon_main = None
-    joycon_imu  = None
+    joycon_imu = None
     joycon_type = None
     
-    # Search for both Left and Right Joy-Con variants
     for device in devices:
         name = device.name
         if "Joy-Con (L)" in name:
@@ -37,7 +29,6 @@ def find_joycon():
                 joycon_type = JoyConType.RIGHT
                 print(f"Found Right Joy-Con Main: {name} at {device.path}")
 
-    # Verify we found both required devices
     if not joycon_main or not joycon_imu or not joycon_type:
         print("\nError: Could not find required Joy-Con devices!")
         if not joycon_main:
@@ -52,8 +43,6 @@ def find_joycon():
     print(f"\n{joycon_type.value} Joy-Con successfully detected!")
     return joycon_main, joycon_imu, joycon_type
 
-
-# Let user select MIDI output from available devices"""
 def select_midi_output():
     outputs = mido.get_output_names()
     if not outputs:

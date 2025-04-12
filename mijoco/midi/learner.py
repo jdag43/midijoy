@@ -1,10 +1,10 @@
 import sys
 import select
 import time
-from config.config_loader import ConfigLoader
-from devices.handler import ButtonState, process_devices
-from midi.sender import MidiSender, send_midi_for_learn
-from devices.detector import JoyConType
+from mijoco.config.config_loader import ConfigLoader
+from mijoco.devices.handler import ButtonState, process_devices
+from mijoco.devices.detector import JoyConType
+from .sender import MidiSender, send_midi_for_learn
 
 config = ConfigLoader()
 

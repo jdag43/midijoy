@@ -1,4 +1,4 @@
-from config.config_loader import ConfigLoader
+from mijoco.config.config_loader import ConfigLoader
 
 config = ConfigLoader()
 

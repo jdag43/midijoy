@@ -2,13 +2,12 @@ import time
 import sys
 import argparse
 import evdev
-from config.config_loader import ConfigLoader
-from devices.detector import find_joycon, select_midi_output
-from devices.handler import ButtonState, process_devices, process_gyro_event, process_joystick_event, process_button_event
-from midi.mapper import scale_gyro_to_midi, scale_joystick_to_midi
-from midi.sender import MidiSender, send_midi_messages
-from midi.learner import midi_learn_loop
-from devices.detector import JoyConType
+from mijoco.config.config_loader import ConfigLoader
+from mijoco.devices.detector import find_joycon, select_midi_output, JoyConType
+from mijoco.devices.handler import ButtonState, process_devices, process_gyro_event, process_joystick_event, process_button_event
+from mijoco.midi.mapper import scale_gyro_to_midi, scale_joystick_to_midi
+from mijoco.midi.sender import MidiSender, send_midi_messages
+from mijoco.midi.learner import midi_learn_loop
 
 # Initialize configuration
 config = ConfigLoader()
@@ -30,7 +29,8 @@ def print_values(gyro_values, joycon_values, gyro_enabled, joystick_enabled, but
         f"\r[{joycon_type.value}] Gyro: X:{gyro_values['x']:6d} | Y:{gyro_values['y']:6d} | Z:{gyro_values['z']:6d} "
         f"[MIDI:{gyro_status}] | "
         f"Joy: X:{joycon_values['x']:6d} | Y:{joycon_values['y']:6d} | "
-        f"Buttons: {','.join(active_buttons) if active_buttons else 'None'}"
+        f"[MIDI:{joystick_status}] | "
+        f"Buttons: {','.join(active_buttons) if active_buttons else 'None':20s}"
     )
     sys.stdout.write(output)
     sys.stdout.flush()
@@ -38,31 +38,48 @@ def print_values(gyro_values, joycon_values, gyro_enabled, joystick_enabled, but
 def print_configuration(midi_out, gyro_enabled, joystick_enabled, joycon_type: JoyConType):
     if not midi_out:
         print("\nRunning in preview mode (no MIDI output)")
-    else:
-        print("\nActive MIDI Configuration:")
-        print(f"Using Joy-Con: {joycon_type.value}")
-        print(f"MIDI Channel: {config.config['midi']['channel']}")
-        print(f"Gyro Output: {'Enabled' if gyro_enabled else 'Disabled'}")
-        print(f"Joystick Output: {'Enabled' if joystick_enabled else 'Disabled'}")
-        
-        print("\nControl Assignments:")
-        if gyro_enabled:
-            print("Gyro:")
-            for axis, cc in config.gyro_cc_map.items():
-                print(f"  {axis.upper()}-axis → CC{cc}")
-        
-        if joystick_enabled:
-            print("\nJoystick:")
-            joystick_map = (config.joystick_right_cc_map if joycon_type == JoyConType.RIGHT 
-                          else config.joystick_left_cc_map)
-            for axis, cc in joystick_map.items():
-                print(f"  {axis.upper()}-axis → CC{cc}")
-        
-        print("\nButtons:")
-        for code, cc in config.button_mappings.items():
-            name = config.button_names.get(code, 'Unknown')
-            if joycon_type.value in name or '(' not in name:
-                print(f"  {name.split('(')[0].strip()} → CC{cc}")
+        return
+
+    print("\nActive MIDI Configuration:")
+    print(f"Using Joy-Con: {joycon_type.value}")
+    print(f"MIDI Channel: {config.config['midi']['channel']}")
+    print(f"Gyro Output: {'Enabled' if gyro_enabled else 'Disabled'}")
+    print(f"Joystick Output: {'Enabled' if joystick_enabled else 'Disabled'}")
+    
+    print("\nControl Assignments:")
+    if gyro_enabled:
+        print("Gyro:")
+        for axis, cc in config.gyro_cc_map.items():
+            print(f"  {axis.upper()}-axis : CC{cc}")
+    
+    if joystick_enabled:
+        print("\nJoystick:")
+        joystick_map = (config.joystick_right_cc_map if joycon_type == JoyConType.RIGHT 
+                      else config.joystick_left_cc_map)
+        for axis, cc in joystick_map.items():
+            print(f"  {axis.upper()}-axis : CC{cc}")
+    
+    print("\nButtons:")
+    # Get all button mappings and names from config
+    button_mappings = config.button_mappings
+    button_names = config.button_names
+    
+    # Define which buttons belong to which Joy-Con type
+    left_buttons = {309, 310, 314, 317, 544, 545, 546, 547}  # Left-specific buttons
+    right_buttons = {304, 305, 307, 308, 315, 316, 318}  # Right-specific buttons
+    common_buttons = {311, 312, 313}  # Common buttons
+    
+    # Filter and display buttons for current Joy-Con
+    for code, cc in button_mappings.items():
+        if code in button_names:
+            name = button_names[code]
+            # Check if button belongs to current Joy-Con or is common
+            if ((joycon_type == JoyConType.LEFT and code in left_buttons) or
+                (joycon_type == JoyConType.RIGHT and code in right_buttons) or
+                (code in common_buttons)):
+                # Clean up name by removing parenthetical (L)/(R) if present
+                display_name = name.split('(')[0].strip() if '(' in name else name
+                print(f"  {display_name} : CC{cc}")
 
 def main_loop(joycon_main, joycon_imu, midi_out, gyro_enabled, joystick_enabled, joycon_type: JoyConType):
     gyro_values = {'x': 0, 'y': 0, 'z': 0}
@@ -76,7 +93,6 @@ def main_loop(joycon_main, joycon_imu, midi_out, gyro_enabled, joystick_enabled,
             current_time = time.time()
             new_data = False
             
-            # Unified device processing
             try:
                 process_devices(joycon_main, joycon_imu, gyro_values, joycon_values, 
                               button_state, joycon_type)
@@ -104,22 +120,30 @@ def main_loop(joycon_main, joycon_imu, midi_out, gyro_enabled, joystick_enabled,
             time.sleep(0.001)
 
     except KeyboardInterrupt:
-        print("\nExiting...")
+        print("\nExiting MiJoCo...")
+    except Exception as e:
+        print(f"\nError: {str(e)}")
+    finally:
+        # Clean up resources
+        joycon_main.close()
+        joycon_imu.close()
+        if midi_out:
+            midi_out.close()
+        sys.exit(0)
 
 def main():
-    parser = argparse.ArgumentParser(description="Joy-Con MIDI Controller")
+    parser = argparse.ArgumentParser(description="MiJoCo (Midi Joy-Con)")
     parser.add_argument("--no-gyro", action="store_true", help="Disable Gyroscope MIDI output")
     parser.add_argument("--no-joystick", action="store_true", help="Disable Joystick MIDI output")
     parser.add_argument("--midi-learn", action="store_true", help="Enable MIDI learn mode")
     args = parser.parse_args()
 
-    print("Starting Joy-Con MIDI controller...")
+    print("Starting MiJoCo controller processing...")
     joycon_main, joycon_imu, joycon_type = find_joycon()
     if not joycon_main or not joycon_imu:
         return
 
     midi_out = select_midi_output()
-    midi_sender = MidiSender(midi_out)
     gyro_enabled = not args.no_gyro
     joystick_enabled = not args.no_joystick
     
@@ -129,15 +153,13 @@ def main():
         joystick_enabled = learned_mappings['joystick_x'] or learned_mappings['joystick_y'] or learned_mappings['joystick_rx'] or learned_mappings['joystick_ry']
     
     print_configuration(midi_out, gyro_enabled, joystick_enabled, joycon_type)
-    print("\nStarting main loop... (Ctrl+C to exit)\n")
+    print("\nStarting main loop... (Press Ctrl+C to exit)\n")
 
     try:
         main_loop(joycon_main, joycon_imu, midi_out, gyro_enabled, joystick_enabled, joycon_type)
-    finally:
-        joycon_main.close()
-        joycon_imu.close()
-        if midi_out:
-            midi_out.close()
+    except Exception as e:
+        print(f"\nUnexpected error: {str(e)}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

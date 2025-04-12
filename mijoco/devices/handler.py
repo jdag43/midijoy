@@ -1,5 +1,5 @@
 import evdev
-from config.config_loader import ConfigLoader
+from mijoco.config.config_loader import ConfigLoader
 from .detector import JoyConType
 
 config = ConfigLoader()
