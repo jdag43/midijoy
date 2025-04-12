@@ -24,7 +24,7 @@ MiJoCo transforms your Nintendo Switch JoyCon into a versatile MIDI controller, 
 
 ```bash
 git clone https://github.com/jdag43/mijoco.git
-cd joycon-midi-controller
+cd mijoco
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -42,7 +42,6 @@ You first need to connect the JoyCon via Bluetooth.
 Then:
 
 ```bash
-cd mijoco/mijoco
 python main.py [--option]
 ```
 
